@@ -1,0 +1,39 @@
+{
+  "name": "crypto-payment-skill",
+  "version": "1.0.0",
+  "description": "GitHub Skill for crypto payment operations: balance checks, payments, wallet management via crypto APIs",
+  "main": "dist/index.js",
+  "bin": {
+    "crypto-balance": "dist/cli/balance.js",
+    "crypto-send": "dist/cli/send.js",
+    "crypto-wallet": "dist/cli/wallet.js",
+    "crypto-tx": "dist/cli/tx.js",
+    "crypto-networks": "dist/cli/networks.js"
+  },
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.cli.json",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "crypto",
+    "payment",
+    "ethereum",
+    "blockchain"
+  ],
+  "author": "AgenticPaymentLab",
+  "license": "MIT",
+  "dependencies": {
+    "alchemy-sdk": "^3.0.0",
+    "ethers": "^6.10.0",
+    "bip39": "^3.1.0",
+    "hdkey": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
+  }
+}
