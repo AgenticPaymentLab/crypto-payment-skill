@@ -8,16 +8,56 @@ GitHub Skill for crypto payment operations: balance checks, payments, wallet man
 npm install -g crypto-payment-skill
 ```
 
+## ⚡ New: Multi-Source Balance Checking
+
+**Never get false $0 balance again!** The skill uses a priority-based fallback system:
+
+### Priority Order
+1. **Block Explorer API** (most reliable)
+2. **Alchemy SDK**
+3. **Multiple RPC Endpoints** (with retry)
+4. **Block Explorer Scraping** (last resort)
+
+```bash
+# See which sources were tried
+crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --history
+# Output: alchemy: OK (15.5), public-rpc-1: FAILED (timeout)
+```
+
+## 🌐 New: Multi-Chain Support
+
+Check your balance across ALL supported chains at once!
+
+```bash
+# Check balance across all chains
+crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --all-chains
+
+# Output:
+# Address: 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b
+# Total: 25.5 ETH-equivalent
+# Sources: block-explorer-api, alchemy
+#
+# Breakdown:
+#   ethereum: 10.5 ETH [block-explorer-api]
+#   polygon: 5.0 MATIC [alchemy]
+#   base: 8.0 ETH [alchemy]
+#   arbitrum: 2.0 ETH [block-explorer-api]
+```
+
 ## Configuration
 
 Set the following environment variables:
 
 ```bash
-# Required for blockchain operations
+# Required for blockchain operations (at least one recommended)
 export ALCHEMY_API_KEY="your-alchemy-api-key"
-
-# Optional: Fallback providers
 export INFURA_API_KEY="your-infura-api-key"
+
+# Optional: Block Explorer API Keys (improves reliability)
+export ETHERSCAN_API_KEY="your-etherscan-api-key"
+export POLYSCAN_API_KEY="your-polygonscan-api-key"
+export BASESCAN_API_KEY="your-basescan-api-key"
+export ARBISCAN_API_KEY="your-arbiscan-api-key"
 
 # Optional: Wallet storage location
 export CRYPTO_WALLET_DIR="$HOME/.crypto-wallets"
@@ -25,6 +65,19 @@ export CRYPTO_WALLET_DIR="$HOME/.crypto-wallets"
 
 ## New Features (Updated 2026-03-13)
 
+### 🔒 Multi-Source Balance Checking
+- ✅ Block Explorer API as primary (most reliable)
+- ✅ Multiple RPC endpoints with automatic retry
+- ✅ Never returns false $0 balance
+- ✅ Detailed error messages with all attempted sources
+- ✅ Use `--history` to see which sources were tried
+
+### 🌐 Multi-Chain Support
+- ✅ Check balance across ALL chains with `--all-chains`
+- ✅ Aggregate total across chains
+- ✅ Per-chain breakdown with source information
+
+### Existing Features
 - ✅ Wallet recovery via seed phrase
 - ✅ Wallet backup/export
 - ✅ Balance sufficiency check
@@ -37,17 +90,42 @@ export CRYPTO_WALLET_DIR="$HOME/.crypto-wallets"
 ### Check Balance
 
 ```bash
-# Check native token balance
+# Check native token balance (uses multi-source fallback)
 crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b
 
 # Check balance on specific network
 crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --network polygon
+
+# Check across ALL chains
+crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --all-chains
+
+# See which sources were tried
+crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --history
 
 # Check ERC-20 token balance
 crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --token 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
 
 # Check if balance is sufficient for amount
 crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --check-sufficient 10
+```
+
+### Multi-Chain Examples
+
+```bash
+# Get full breakdown across all chains
+$ crypto-balance 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b --all-chains
+Address: 0x742d35Cc6634C0532925a3b844Bc9e7595f4fC5b
+Total: 25.5 ETH-equivalent
+Sources: block-explorer-api, alchemy
+
+Breakdown:
+  ethereum: 10.5 ETH [block-explorer-api]
+  polygon: 5.0 MATIC [alchemy]
+  base: 8.0 ETH [alchemy]
+  arbitrum: 2.0 ETH [block-explorer-api]
+
+Errors:
+  optimism: RPC timeout
 ```
 
 ### Send Transaction
@@ -131,7 +209,8 @@ crypto-networks
 | Error | Handling |
 |-------|----------|
 | Insufficient funds | Returns current balance |
-| Network failure | Auto-fallback to next provider |
+| Network failure | Auto-fallback to next provider (tries up to 5 sources) |
+| All sources fail | Detailed error with all attempted sources & manual check URLs |
 | Wallet access denied | Prompt for recovery |
 | Invalid address | Validation before send |
 
